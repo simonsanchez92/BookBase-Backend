@@ -6,9 +6,13 @@ namespace BookBase.Services.Interfaces
     public interface IUserService
     {
 
-        Task<User> GetUserByIdAsync(int id);
+        Task<User> GetByIdAsync(int id);
 
-        Task<User?> GetByUsername(string username);
+        Task<User?> GetByUsernameAsync(string username);
+
+        Task<User?> GetByEmailAsync(string username);
+
+
 
         Task<List<User>> GetAllUsersAsync();
 

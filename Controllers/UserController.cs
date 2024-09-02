@@ -19,21 +19,10 @@ namespace BookBase.Controllers
         }
 
 
-        //[HttpPost]
-        //public async Task<ActionResult<User>> CreateUser(UserCreateDto userDto)
-        //{
-
-        //    var createdUser = await _userService.CreateUserAsync(userDto);
-
-
-        //    return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
-        //}
-
-
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
-            var user = await _userService.GetUserByIdAsync(id);
+            var user = await _userService.GetByIdAsync(id);
             
 
             if (user == null) {

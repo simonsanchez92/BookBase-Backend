@@ -5,6 +5,7 @@ using BCrypt.Net;
 using BookBase.Services.Interfaces;
 using System.Xml;
 using BookBase.DTOs;
+using BookBase.Utilities;
 
 
 namespace BookBase.Services
@@ -26,31 +27,12 @@ namespace BookBase.Services
         }
 
 
-
-     
-
-        //public async Task<User> CreateUserAsync(UserCreateDto userDto)
-        //{
-        //    var user = new User(userDto.Username, userDto.Email, userDto.FirstName, userDto.LastName);
-
-        //    user.SetPasswordHash(_passwordHasherService.HashPassword(userDto.Password));
-
-        //    _context.Users.Add(user);
-        //    await _context.SaveChangesAsync();
-        //    return user;
-
-        //}
-
-
-
         public async Task<List<User>> GetAllUsersAsync()
         {
             return await _context.Users.ToListAsync();
         }
 
-
-
-        public async Task<User?> GetUserByIdAsync(int id)
+        public async Task<User?> GetByIdAsync(int id)
         {
             try
             {
@@ -74,7 +56,7 @@ namespace BookBase.Services
 
         //For now method is being used internally in AuthService
         // Method is not being exposed through the controllers
-        public async Task<User?> GetByUsername(string username) {
+        public async Task<User?> GetByUsernameAsync(string username) {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
             if (user == null)
@@ -84,7 +66,21 @@ namespace BookBase.Services
 
             return user;
         }
-         
+
+
+
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if(user == null)
+            {
+                Console.WriteLine("User with email " + email + " does not exist");
+            }
+
+            return user;
+        }
+
 
         public void DeleteUserById(int id)
         {

@@ -2,7 +2,7 @@
 using BookBase.Services.Interfaces;
 using BookBase.Models;
 using BookBase.DTOs;
-using BCrypt.Net;
+using BookBase.Utilities;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
@@ -40,7 +40,32 @@ namespace BookBase.Services
         }
 
 
-        public async Task<User> RegisterAsync(UserCreateDto userCreateDto) {
+
+        public async Task<ServiceResult<User>> RegisterAsync(UserCreateDto userCreateDto)
+        {
+
+            //Check if username exists
+            if (await _userService.GetByUsernameAsync(userCreateDto.Username) != null)
+            {
+                string msg = $"Username '{userCreateDto.Username}' is already taken.";
+
+                _logger.LogWarning(msg);
+                return ServiceResult<User>.FailureResult(msg);
+            }
+
+            //Check if email exists
+            if (await _userService.GetByEmailAsync(userCreateDto.Email) != null)
+            {
+                
+                string msg = $"Email '{userCreateDto.Email}' is already taken.";
+
+                _logger.LogWarning(msg);
+                return ServiceResult<User>.FailureResult(msg);
+            }
+
+
+
+            // If both checks pass, proceed to register the user
 
             var user = new User(userCreateDto.Username, userCreateDto.Email, userCreateDto.FirstName, userCreateDto.LastName);
 
@@ -48,14 +73,15 @@ namespace BookBase.Services
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return user;
+
+            return ServiceResult<User>.SuccessResult(user, "User registered successfully");
         }
 
 
         public async Task<AuthResult> LoginAsync(string username, string password)
         {
 
-            var user = await _userService.GetByUsername(username);
+            var user = await _userService.GetByUsernameAsync(username);
 
             if (user == null || !VerifyPassword(password, user.PasswordHash))
             {

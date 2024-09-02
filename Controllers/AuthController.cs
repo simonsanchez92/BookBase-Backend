@@ -33,9 +33,14 @@ namespace BookBase.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register(UserCreateDto userCreateDto)
         {
-            var createdUser = await _authService.RegisterAsync(userCreateDto);
+            var res = await _authService.RegisterAsync(userCreateDto);
 
-            return CreatedAtAction(nameof(Register), new {id = createdUser.Id}, createdUser);
+            if (!res.Success)
+            {
+                return Conflict(new { res.Message });
+            }
+
+            return CreatedAtAction(nameof(Register), new {id = res.Data.Id}, res.Data);
         }
 
 
