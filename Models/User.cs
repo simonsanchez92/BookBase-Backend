@@ -10,6 +10,17 @@
         public string PasswordHash { get; private set; }
 
 
+
+        public User() { }
+
+        public User(string username, string email, string firstName, string lastName)
+        {
+            Username = username;
+            Email = email;
+            FirstName = firstName;
+            LastName = lastName;
+        }
+
         public User(int id, string username, string email, string firstName, string lastName, string passwordHash)
         {
             Id = id;

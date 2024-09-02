@@ -12,4 +12,11 @@
         public string Password { get; set; }
     }
 
+
+    //public class UserUpdateDto: UserCreateDto {
+    
+    //    public string Id { get; set; }
+    
+    //}
+
 }

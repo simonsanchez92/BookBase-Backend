@@ -3,6 +3,8 @@ using BookBase.Models;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
 using BookBase.Services.Interfaces;
+using System.Xml;
+using BookBase.DTOs;
 
 
 namespace BookBase.Services
@@ -13,35 +15,59 @@ namespace BookBase.Services
         private readonly ApplicationDbContext _context;
         private readonly IPasswordHasherService _passwordHasherService;
 
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(ApplicationDbContext context, IPasswordHasherService passwordHasherService)
+
+        public UserService(ApplicationDbContext context, IPasswordHasherService passwordHasherService, ILogger<UserService> logger)
         {
             _context = context;
-            _passwordHasherService = passwordHasherService; 
+            _passwordHasherService = passwordHasherService;
+            _logger = logger;
         }
 
 
 
-        public async Task<User> CreateUserAsync(User user, string plainTextPassword)
+     
+
+        //public async Task<User> CreateUserAsync(UserCreateDto userDto)
+        //{
+        //    var user = new User(userDto.Username, userDto.Email, userDto.FirstName, userDto.LastName);
+
+        //    user.SetPasswordHash(_passwordHasherService.HashPassword(userDto.Password));
+
+        //    _context.Users.Add(user);
+        //    await _context.SaveChangesAsync();
+        //    return user;
+
+        //}
+
+
+
+        public async Task<List<User>> GetAllUsersAsync()
         {
-            user.SetPasswordHash(_passwordHasherService.HashPassword(plainTextPassword));
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return user;
-
+            return await _context.Users.ToListAsync();
         }
+
+
 
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            var user  = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-
-            if (user == null)
+            try
             {
-                Console.WriteLine("User with id "+ id + " not found");
-            }
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+                
+                if (user == null) {
+                    _logger.LogWarning($"User with id {id} was not found");
+                
+                }
 
-            return user;
+                return user;
+            }
+            catch (Exception ex) {
+
+                _logger.LogError(ex, $"An error occurred while retrieving the user with ID {id}.");
+                return null;
+            }
 
         }
 
@@ -59,10 +85,6 @@ namespace BookBase.Services
             return user;
         }
          
-          public async  Task<User> GetUsers()
-        {
-            throw new NotImplementedException();
-        }
 
         public void DeleteUserById(int id)
         {

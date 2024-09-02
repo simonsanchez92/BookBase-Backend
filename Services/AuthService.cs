@@ -1,11 +1,14 @@
 ﻿
 using BookBase.Services.Interfaces;
 using BookBase.Models;
+using BookBase.DTOs;
 using BCrypt.Net;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.EntityFrameworkCore;
+using BookBase.Data;
 
 
 
@@ -18,21 +21,59 @@ namespace BookBase.Services
 
     public class AuthService : IAuthService
     {
+        private readonly ApplicationDbContext _context;
         private readonly IUserService _userService; // for handling user data
         private readonly IConfiguration _configuration;
+        private readonly IPasswordHasherService _passwordHasherService;
 
 
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IUserService userService, IConfiguration configuration)
+
+        public AuthService(ApplicationDbContext context, IUserService userService, IConfiguration configuration, IPasswordHasherService passwordHasherService, ILogger<AuthService> logger)
         {
+            _context = context;
             _userService = userService;
             _configuration = configuration;
+            _logger = logger;
+            _passwordHasherService = passwordHasherService;
         }
+
+
+        public async Task<User> RegisterAsync(UserCreateDto userCreateDto) {
+
+            var user = new User(userCreateDto.Username, userCreateDto.Email, userCreateDto.FirstName, userCreateDto.LastName);
+
+            user.SetPasswordHash(_passwordHasherService.HashPassword(userCreateDto.Password));
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
+
+
+        public async Task<AuthResult> LoginAsync(string username, string password)
+        {
+
+            var user = await _userService.GetByUsername(username);
+
+            if (user == null || !VerifyPassword(password, user.PasswordHash))
+            {
+                return new AuthResult { Success = false, Message = "Invalid Credentials." };
+            }
+
+            string token = GenerateJwtToken(user);
+
+
+            return new AuthResult { Success = true, Token = token };
+
+        }
+
 
 
         private bool VerifyPassword(string providedPassword, string hashedPassword)
         {
-            return BCrypt.Net.BCrypt.Verify(providedPassword, hashedPassword);
+            return _passwordHasherService.VerifyPassword(providedPassword, hashedPassword);
         }
 
 
@@ -72,23 +113,6 @@ namespace BookBase.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-
-
-        public async Task<AuthResult> LoginAsync(string username, string password) {
-
-            var user = await _userService.GetByUsername(username);
-
-            if (user == null || !VerifyPassword(password, user.PasswordHash))
-            {
-                return new AuthResult { Success = false, Message = "Invalid Credentials."};
-            }
-
-            string token = GenerateJwtToken(user);
-
-
-            return new AuthResult { Success = true, Token = token };
-        
-        }
     }
 
 

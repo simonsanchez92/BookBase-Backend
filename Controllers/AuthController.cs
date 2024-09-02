@@ -1,4 +1,6 @@
 ﻿using BookBase.DTOs;
+using BookBase.Models;
+using BookBase.Services;
 using BookBase.Services.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +28,17 @@ namespace BookBase.Controllers
         {
             _authService = authService;
         }
+
+
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> Register(UserCreateDto userCreateDto)
+        {
+            var createdUser = await _authService.RegisterAsync(userCreateDto);
+
+            return CreatedAtAction(nameof(Register), new {id = createdUser.Id}, createdUser);
+        }
+
+
 
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginDto loginDto)
