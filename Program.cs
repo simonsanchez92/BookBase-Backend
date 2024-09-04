@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using BookBase.DTOs;
+using FluentValidation;
+using System;
 
 namespace BookBase
 {
@@ -47,7 +50,15 @@ namespace BookBase
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddSingleton<IPasswordHasherService, BcryptPasswordHasherService>();
 
+
+            //Registering validator service
+
+            //builder.Services.AddScoped<IValidator<UserCreateDto>, UserCreateDtoValidator>();
+            //builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
+
             
+
+
 
             builder.Services.AddAuthentication(cfg =>
             {
@@ -77,7 +88,11 @@ namespace BookBase
             builder.Services.AddControllers();
 
 
-            //Adding Swagger Services
+
+
+
+
+            //Adding Swagger Servicess
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -117,6 +132,9 @@ namespace BookBase
                 });
 
             });
+
+
+
 
 
 

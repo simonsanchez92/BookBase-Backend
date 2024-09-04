@@ -1,4 +1,8 @@
-﻿namespace BookBase.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+
+
+namespace BookBase.DTOs
 {
 
     public class UserCreateDto

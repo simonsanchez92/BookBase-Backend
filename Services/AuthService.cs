@@ -9,7 +9,9 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.EntityFrameworkCore;
 using BookBase.Data;
-
+using BookBase.DTOs;
+using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 
 
 namespace BookBase.Services
@@ -43,29 +45,45 @@ namespace BookBase.Services
 
         public async Task<ServiceResult<User>> RegisterAsync(UserCreateDto userCreateDto)
         {
+           
+            List<string> errMessages= new List<string>();
+            var validator = new UserCreateDtoValidator();
+            var validationResult = validator.Validate(userCreateDto);
+
+
+
+            if (!validationResult.IsValid)
+            {
+                foreach(var error in validationResult.Errors)
+                {
+                    errMessages.Add(error.ToString());
+                }
+
+            }
+
 
             //Check if username exists
             if (await _userService.GetByUsernameAsync(userCreateDto.Username) != null)
             {
                 string msg = $"Username '{userCreateDto.Username}' is already taken.";
+                errMessages.Add(msg);
 
-                _logger.LogWarning(msg);
-                return ServiceResult<User>.FailureResult(msg);
             }
 
             //Check if email exists
             if (await _userService.GetByEmailAsync(userCreateDto.Email) != null)
             {
-                
                 string msg = $"Email '{userCreateDto.Email}' is already taken.";
+                errMessages.Add(msg);
 
-                _logger.LogWarning(msg);
-                return ServiceResult<User>.FailureResult(msg);
             }
 
 
+            if (errMessages.Any())  return ServiceResult<User>.FailureResult(errMessages);
 
-            // If both checks pass, proceed to register the user
+
+
+            // If all checks pass, proceed to register the user
 
             var user = new User(userCreateDto.Username, userCreateDto.Email, userCreateDto.FirstName, userCreateDto.LastName);
 

@@ -4,6 +4,7 @@ using BookBase.Services;
 using BookBase.Services.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace BookBase.Controllers
 {
@@ -33,11 +34,13 @@ namespace BookBase.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register(UserCreateDto userCreateDto)
         {
+         
+     
             var res = await _authService.RegisterAsync(userCreateDto);
 
             if (!res.Success)
             {
-                return Conflict(new { res.Message });
+                return Conflict(new { res.Messages});
             }
 
             return CreatedAtAction(nameof(Register), new {id = res.Data.Id}, res.Data);
